@@ -51,7 +51,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	const browser = await playwright.chromium.launch({
 		args: chromium.args,
 		executablePath: (await chromium.executablePath) || undefined,
-		headless: true,
+		headless: chromium.headless,
 	});
 	const page = await browser.newPage();
 	await page.goto(
