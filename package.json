@@ -6,6 +6,7 @@
   "scripts": {
     "start": "vercel",
     "dev": "vercel dev",
+    "build": "tsc",
     "format": "rome format --write .",
     "lint": "rome ci .",
     "typecheck": "tsc"
@@ -13,14 +14,10 @@
   "dependencies": {
     "chrome-aws-lambda": "^10.1.0",
     "ics": "^3.1.0",
-    "lodash-es": "^4.17.21",
-    "osmosis": "^1.1.10",
     "playwright-core": "^1.34.3",
     "vercel": "^30.0.0"
   },
   "devDependencies": {
-    "@types/lodash-es": "^4.17.7",
-    "@types/osmosis": "^1.1.1",
     "@vercel/node": "^2.14.3",
     "playwright": "^1.34.3",
     "rome": "^12.1.3",
