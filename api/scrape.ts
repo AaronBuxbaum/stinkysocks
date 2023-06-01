@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import chromium from "chrome-aws-lambda";
 import ics, { EventAttributes } from "ics";
-import playwright from "playwright-core";
 
 const locationMap: Record<string, string> = {
 	"W ROXBURY":
@@ -42,16 +41,20 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
 	const getPage = async (count: number) => {
 		if (count !== 1) {
-			await page.getByText("Next", { exact: true }).first().click();
+			// const nextButton = await page.waitForText('Next');
+			// await nextButton.click();
 		}
-		await page.getByText(`Page ${count}`).first().waitFor();
-		return page.locator(".order-items a").allInnerTexts();
+		// await page.waitForText(`Page ${count}`);
+		await page.waitForSelector(".order-items a");
+		return page.$$eval(".order-items a", (nodes) => nodes.map((node) => node.textContent!));
 	};
 
-	const browser = await playwright.chromium.launch({
+	const browser = await chromium.puppeteer.launch({
 		args: chromium.args,
-		executablePath: (await chromium.executablePath) || undefined,
-		headless: chromium.headless,
+		defaultViewport: chromium.defaultViewport,
+		executablePath: await chromium.executablePath,
+		headless: true, // chromium.headless,
+		ignoreHTTPSErrors: true,
 	});
 	const page = await browser.newPage();
 	await page.goto(
@@ -60,11 +63,13 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	await page.type("input[id='email']", process.env.USERNAME);
 	await page.type("input[id='password']", process.env.PASSWORD);
 	await page.click("input[id='login-button']");
-	await page.getByText("Orders", { exact: true }).click();
+	const ordersButton = await page.waitForText('Orders');
+	await ordersButton.clickAndWaitForNavigation();
 
 	const data: string[] = [];
 	for (let i = 1; i <= 3; i++) {
 		const pageData = await getPage(i);
+		console.log(pageData);
 		data.push(...pageData);
 	}
 
@@ -80,6 +85,4 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	res.setHeader("Content-Type", "text/calendar; charset=utf-8");
 	res.setHeader("Content-Disposition", "attachment; filename=stinkysocks.ics");
 	res.send(value);
-
-	await browser.close();
 };
