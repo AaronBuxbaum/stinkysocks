@@ -14,7 +14,7 @@
     "chrome-aws-lambda": "^10.1.0",
     "ics": "^3.1.0",
     "playwright-core": "^1.34.3",
-    "vercel": "^30.0.0"
+    "vercel": "^31.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
