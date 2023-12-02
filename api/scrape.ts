@@ -1,17 +1,17 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import chromium from "chrome-aws-lambda";
 import ics, { EventAttributes } from "ics";
+import { chromium as playwright } from "playwright-core";
 
 const locationMap: Record<string, string> = {
 	"W ROXBURY":
 		"Jim Roche Arena, 1275 VFW Pkwy, West Roxbury, MA 02132, United States",
 	"QUINCY (QYA)":
-		"Quincy Youth Arena, 60 Murphy Memorial Dr, Quincy, MA  02169, United States",
+		"Quincy Youth Arena, 60 Murphy Memorial Dr, Quincy, MA 02169, United States",
 	SOMERVILLE:
-		"Somerville Veteran's Rink, 570 Somerville Ave, Somerville, MA  02143, United States",
+		"Somerville Veteran's Rink, 570 Somerville Ave, Somerville, MA 02143, United States",
 	CAMBRIDGE:
-		"Simoni Skating Rink, 155 Gore St, Cambridge, MA  02141, United States",
-	MILTON: "Ulin Rink, 11 Unquity Rd, Milton, MA  02186, United States",
+		"Simoni Skating Rink, 155 Gore St, Cambridge, MA 02141, United States",
+	MILTON: "Ulin Rink, 11 Unquity Rd, Milton, MA 02186, United States",
 	BRIGHTON: "Warrior Ice Arena, 90 Guest St, Brighton, MA 02135, United States",
 };
 
@@ -22,11 +22,11 @@ const formatGame = (game: string): EventAttributes => {
 	return {
 		title: `StinkySocks ${level}`,
 		description: level,
-		busyStatus: "FREE",
+		busyStatus: "BUSY",
 		location: locationMap[rink] || rink,
 		start: [
 			date.getUTCFullYear(),
-			date.getUTCMonth(),
+			date.getUTCMonth() + 1,
 			date.getUTCDate(),
 			date.getUTCHours(),
 			date.getUTCMinutes(),
@@ -41,35 +41,25 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
 	const getPage = async (count: number) => {
 		if (count !== 1) {
-			// const nextButton = await page.waitForText('Next');
-			// await nextButton.click();
+			await page.getByText("Next", { exact: true }).first().click();
 		}
-		// await page.waitForText(`Page ${count}`);
-		await page.waitForSelector(".order-items a");
-		return page.$$eval(".order-items a", (nodes) => nodes.map((node) => node.textContent!));
+		await page.getByText(`Page ${count}`).first().waitFor();
+		return page.locator(".order-items a").allInnerTexts();
 	};
 
-	const browser = await chromium.puppeteer.launch({
-		args: chromium.args,
-		defaultViewport: chromium.defaultViewport,
-		executablePath: await chromium.executablePath,
-		headless: true, // chromium.headless,
-		ignoreHTTPSErrors: true,
-	});
+	const browser = await playwright.launch();
 	const page = await browser.newPage();
 	await page.goto(
 		"https://secure.stinkysocks.net/myaccount/index.do?merchantId=SSHKY",
 	);
-	await page.type("input[id='email']", process.env.USERNAME);
-	await page.type("input[id='password']", process.env.PASSWORD);
+	await page.fill("input[id='email']", process.env.USERNAME);
+	await page.fill("input[id='password']", process.env.PASSWORD);
 	await page.click("input[id='login-button']");
-	const ordersButton = await page.waitForText('Orders');
-	await ordersButton.clickAndWaitForNavigation();
+	await page.getByText("Orders", { exact: true }).click();
 
 	const data: string[] = [];
-	for (let i = 1; i <= 3; i++) {
+	for (let i = 1; i <= 1; i++) { // TODO: 3
 		const pageData = await getPage(i);
-		console.log(pageData);
 		data.push(...pageData);
 	}
 
@@ -80,9 +70,15 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	});
 
 	const { value, error } = ics.createEvents(games.map(formatGame));
-	if (error) throw error;
+	if (error) {
+		res.status(500);
+		res.send(error.message);
+		throw error;
+	}
 
 	res.setHeader("Content-Type", "text/calendar; charset=utf-8");
 	res.setHeader("Content-Disposition", "attachment; filename=stinkysocks.ics");
 	res.send(value);
+
+	await browser.close();
 };
