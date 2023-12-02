@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import ics, { EventAttributes } from "ics";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
+import utc from "dayjs/plugin/utc.js";
 import playwright from "playwright-aws-lambda";
 
 dayjs.extend(utc);
