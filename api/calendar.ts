@@ -11,7 +11,8 @@ const cacheGame = async (game: Game) => {
 	await kv.set(game.description, "scheduled");
 }
 
-export default async (req: VercelRequest, res: VercelResponse) => {
+export const runtime = "edge";
+export default async function GET(req: VercelRequest, res: VercelResponse) {
 	const browser = await playwright.launchChromium({ headless: true });
 	const page = await login(browser);
 	await page.getByText("Orders", { exact: true }).click();
