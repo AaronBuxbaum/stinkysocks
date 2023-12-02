@@ -4,6 +4,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import playwright from "playwright-aws-lambda";
 
+dayjs.extend(utc);
+
 const locationMap: Record<string, string> = {
 	"W ROXBURY":
 		"Jim Roche Arena, 1275 VFW Pkwy, West Roxbury, MA 02132",
