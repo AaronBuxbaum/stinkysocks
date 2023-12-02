@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import ics, { EventAttributes } from "ics";
-import { chromium as playwright } from "playwright-core";
+import playwright from "playwright-aws-lambda";
 
 const locationMap: Record<string, string> = {
 	"W ROXBURY":
@@ -47,7 +47,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 		return page.locator(".order-items a").allInnerTexts();
 	};
 
-	const browser = await playwright.launch();
+	const browser = await playwright.launchChromium();
 	const page = await browser.newPage();
 	await page.goto(
 		"https://secure.stinkysocks.net/myaccount/index.do?merchantId=SSHKY",
