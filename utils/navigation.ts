@@ -1,11 +1,12 @@
 import type { Page } from "playwright-core";
 
-export const scrapePage = async (page: Page, numberOfPages: number) => {
+export const scrapePage = async (page: Page) => {
   const data: string[] = [];
-	for (let i = 1; i <= numberOfPages; i++) {
+	while(true) {
 		const pageData = await getPageData(page);
 		data.push(...pageData);
-		if (i !== numberOfPages) await navigateToNextPage(page);
+		if(await page.getByText("Next", { exact: true }).count() === 0) break;
+		await navigateToNextPage(page);
 	}
 
   const cleaned = data.filter((entry) => {
@@ -18,7 +19,7 @@ export const scrapePage = async (page: Page, numberOfPages: number) => {
 }
 
 const getPageData = async (page: Page) => {
-  return page.locator(".order-items a").or(page.locator(".product-title")).allInnerTexts();
+  return page.locator(".order-items a").or(page.locator(".product")).allInnerTexts();
 };
 
 const navigateToNextPage = async (page: Page) => {

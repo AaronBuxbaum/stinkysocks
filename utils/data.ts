@@ -24,15 +24,23 @@ const locationMap: Record<string, string> = {
   "W ROXBURY": "Jim Roche Arena, 1275 VFW Pkwy, West Roxbury, MA 02132",
 };
 
-export const formatGame = (game: string): EventAttributes => {
-  const [day, rink, time, level] = game.split(" - ");
+export interface Game {
+  description: string;
+  status: string;
+  date: dayjs.Dayjs;
+  event: EventAttributes;
+}
+
+export const formatGame = (game: string): Game => {
+  const [description, status] = game.split("\n");
+  const [day, rink, time, level] = description.split(" - ");
   const date = dayjs(`${day} ${time} EST`).utc();
 
   if (!locationMap[rink]) {
     console.log(`No location found for ${rink}! Proceeding...`)
   }
 
-  return {
+  const event: EventAttributes = {
     title: "Hockey",
     description: `StinkySocks: ${level}`,
     busyStatus: "BUSY",
@@ -47,5 +55,13 @@ export const formatGame = (game: string): EventAttributes => {
     startInputType: "utc",
     startOutputType: "utc",
     duration: { minutes: 60 },
+    uid: description,
   };
+
+  return {
+    event,
+    date,
+    description,
+    status,
+  }
 };
