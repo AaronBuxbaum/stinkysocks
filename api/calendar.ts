@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import ics, { EventAttributes } from "ics";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import playwright from "playwright-aws-lambda";
 
 const locationMap: Record<string, string> = {
@@ -17,7 +19,7 @@ const locationMap: Record<string, string> = {
 
 const formatGame = (game: string): EventAttributes => {
 	const [day, rink, time, level] = game.split(" - ");
-	const date = new Date(`${day} ${time}`);
+	const date = dayjs(`${day} ${time} EST`).utc();
 
 	return {
 		title: `StinkySocks ${level}`,
@@ -25,13 +27,14 @@ const formatGame = (game: string): EventAttributes => {
 		busyStatus: "BUSY",
 		location: locationMap[rink] || rink,
 		start: [
-			date.getUTCFullYear(),
-			date.getUTCMonth() + 1,
-			date.getUTCDate(),
-			date.getUTCHours(),
-			date.getUTCMinutes(),
+			date.year(),
+			date.month() + 1,
+			date.date(),
+			date.hour(),
+			date.minute(),
 		],
 		startInputType: "utc",
+		startOutputType: "utc",
 		duration: { minutes: 60 },
 	};
 };
@@ -53,7 +56,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	const getNumberOfPages = async () => {
 		const value = await page.getByText("Page 1").first().innerText();
 		const match = value.match(/Page 1 of (\d+)/);
-		if(!match) throw new Error("no page number found");
+		if (!match) throw new Error("no page number found");
 		return Number(match[1]);
 	}
 

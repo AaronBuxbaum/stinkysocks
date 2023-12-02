@@ -9,6 +9,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "dayjs": "^1.11.10",
     "ics": "^3.5.0",
     "playwright-aws-lambda": "^0.10.0",
     "playwright-core": "^1.40.1"
