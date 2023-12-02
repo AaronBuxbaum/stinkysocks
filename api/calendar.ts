@@ -39,15 +39,26 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	if (!process.env.USERNAME) throw new Error("No username provided");
 	if (!process.env.PASSWORD) throw new Error("No password provided");
 
-	const getPage = async (count: number) => {
-		if (count !== 1) {
-			await page.getByText("Next", { exact: true }).first().click();
-		}
-		await page.getByText(`Page ${count}`).first().waitFor();
+	const getPageData = async (pageNumber: number) => {
+		await page.getByText(`Page ${pageNumber}`).first().waitFor();
 		return page.locator(".order-items a").allInnerTexts();
 	};
 
-	const browser = await playwright.launchChromium();
+	const navigateToNextPage = async () => {
+		return page.getByText("Next", { exact: true }).first().click()
+	};
+
+	// known bug: if there are no games, there is no page number, which will throw here
+	const getNumberOfPages = async () => {
+		const value = await page.getByText("Page 1").first().innerText();
+		const match = value.match(/Page 1 of (\d+)/);
+		if(!match) throw new Error("no page number found");
+		return Number(match[1]);
+	}
+
+	const browser = await playwright.launchChromium({
+		headless: true,
+	});
 	const page = await browser.newPage();
 	await page.goto(
 		"https://secure.stinkysocks.net/myaccount/index.do?merchantId=SSHKY",
@@ -56,11 +67,13 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 	await page.fill("input[id='password']", process.env.PASSWORD);
 	await page.click("input[id='login-button']");
 	await page.getByText("Orders", { exact: true }).click();
+	const numberOfPages = await getNumberOfPages();
 
 	const data: string[] = [];
-	for (let i = 1; i <= 1; i++) { // TODO: 3
-		const pageData = await getPage(i);
+	for (let i = 1; i <= numberOfPages; i++) {
+		const pageData = await getPageData(i);
 		data.push(...pageData);
+		if (i !== numberOfPages) await navigateToNextPage();
 	}
 
 	const games = data.filter((game) => {
