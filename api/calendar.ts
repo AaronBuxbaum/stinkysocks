@@ -4,15 +4,15 @@ import playwright from "playwright-aws-lambda";
 
 const locationMap: Record<string, string> = {
 	"W ROXBURY":
-		"Jim Roche Arena, 1275 VFW Pkwy, West Roxbury, MA 02132, United States",
+		"Jim Roche Arena, 1275 VFW Pkwy, West Roxbury, MA 02132",
 	"QUINCY (QYA)":
-		"Quincy Youth Arena, 60 Murphy Memorial Dr, Quincy, MA 02169, United States",
+		"Quincy Youth Arena, 60 Murphy Memorial Dr, Quincy, MA 02169",
 	SOMERVILLE:
-		"Somerville Veteran's Rink, 570 Somerville Ave, Somerville, MA 02143, United States",
+		"Somerville Veteran's Rink, 570 Somerville Ave, Somerville, MA 02143",
 	CAMBRIDGE:
-		"Simoni Skating Rink, 155 Gore St, Cambridge, MA 02141, United States",
-	MILTON: "Ulin Rink, 11 Unquity Rd, Milton, MA 02186, United States",
-	BRIGHTON: "Warrior Ice Arena, 90 Guest St, Brighton, MA 02135, United States",
+		"Simoni Skating Rink, 155 Gore St, Cambridge, MA 02141",
+	MILTON: "Ulin Rink, 11 Unquity Rd, Milton, MA 02186",
+	BRIGHTON: "Warrior Ice Arena, 90 Guest St, Brighton, MA 02135",
 };
 
 const formatGame = (game: string): EventAttributes => {
@@ -31,6 +31,7 @@ const formatGame = (game: string): EventAttributes => {
 			date.getUTCHours(),
 			date.getUTCMinutes(),
 		],
+		startInputType: "utc",
 		duration: { minutes: 60 },
 	};
 };
