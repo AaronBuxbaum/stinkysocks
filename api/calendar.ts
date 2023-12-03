@@ -10,7 +10,7 @@ const cacheGame = async (game: Game) => {
 	await kv.set(game.description, "scheduled");
 }
 
-export default async function GET() {
+export async function GET() {
 	const browser = await playwright.launchChromium({ headless: true });
 	const page = await login(browser);
 	await page.getByText("Orders", { exact: true }).click();
