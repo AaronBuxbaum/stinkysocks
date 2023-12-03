@@ -10,7 +10,7 @@ const cacheGame = async (game: Game) => {
 	await kv.set(game.description, "scheduled");
 }
 
-export const runtime = "edge";
+export const config = { runtime: "edge" };
 export default async function GET() {
 	const browser = await playwright.launchChromium({ headless: true });
 	const page = await login(browser);
@@ -19,5 +19,5 @@ export default async function GET() {
 	await browser.close();
 	const games = data.map(formatGame);
 	await Promise.all(games.map(cacheGame));
-	sendICS(games);
+	return sendICS(games);
 };

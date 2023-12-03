@@ -15,7 +15,7 @@ const asyncFilter = async <T>(arr: T[], predicate: (input: T) => Promise<boolean
 const instructions = `To submit a game as waitlisted, send a POST request to this endpoint: https://stinkysocks.vercel.app/api/waitlist with the name of the game in the body.\n
 For example: { "data": "SUN 12/3/23 - DORCHESTER - 7:00 PM - Mixed Novice/Lower Intermediate (Levels 2-4)" }`
 
-export const runtime = "edge";
+export const config = { runtime: "edge" };
 export default async function GET() {
   const browser = await playwright.launchChromium({ headless: true });
   const page = await login(browser);
