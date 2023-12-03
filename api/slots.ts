@@ -16,11 +16,12 @@ const instructions = `To submit a game as waitlisted, send a POST request to thi
 For example: { "data": "SUN 12/3/23 - DORCHESTER - 7:00 PM - Mixed Novice/Lower Intermediate (Levels 2-4)" }`
 
 export const runtime = "edge";
-export default async function GET(req: VercelRequest, res: VercelResponse) {
+export default async function GET() {
   const browser = await playwright.launchChromium({ headless: true });
   const page = await login(browser);
   await page.goto("https://secure.stinkysocks.net/nch/index.html?level=Novice");
   const data = await scrapePage(page);
+  await browser.close();
   const games = data.map(formatGame).filter((game) => URGENT_STATUSES.includes(game.status));
   const availableGames = await asyncFilter(games, async (game) => {
     if (game.description && await kv.get(game.description)) {
@@ -29,11 +30,9 @@ export default async function GET(req: VercelRequest, res: VercelResponse) {
     return true;
   });
 
-  res.json({
+  return Response.json({
     finalFew: availableGames.filter((game) => game.status === "FINAL FEW / BOOK NOW").map((game) => game.description),
     waitlist: availableGames.filter((game) => game.status === "SOLD OUT - WAITLIST").map((game) => game.description),
     // instructions,
   });
-
-  await browser.close();
 }

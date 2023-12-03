@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import playwright from "playwright-aws-lambda";
 import login from "../utils/login.js";
 import sendICS from "../utils/ics.js";
@@ -12,13 +11,13 @@ const cacheGame = async (game: Game) => {
 }
 
 export const runtime = "edge";
-export default async function GET(req: VercelRequest, res: VercelResponse) {
+export default async function GET() {
 	const browser = await playwright.launchChromium({ headless: true });
 	const page = await login(browser);
 	await page.getByText("Orders", { exact: true }).click();
 	const data = await scrapePage(page);
+	await browser.close();
 	const games = data.map(formatGame);
 	await Promise.all(games.map(cacheGame));
-	sendICS(games, res);
-	await browser.close();
+	sendICS(games);
 };

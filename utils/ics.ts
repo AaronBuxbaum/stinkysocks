@@ -1,17 +1,17 @@
-import type { VercelResponse } from "@vercel/node";
 import ics from "ics";
 import type { Game } from "./data";
 
-export default async function sendICS(games: Game[], res: VercelResponse) {
+export default async function sendICS(games: Game[]) {
 	const events = games.map((game) => game.event);
   const { value, error } = ics.createEvents(events);
 	if (error) {
-		res.status(500);
-		res.send(error.message);
-		throw error;
+		return Response.json({ error: error.message }, { status: 500 });
 	}
 
-	res.setHeader("Content-Type", "text/calendar; charset=utf-8");
-	res.setHeader("Content-Disposition", "attachment; filename=stinkysocks.ics");
-	res.send(value);
+	return Response.json(value, {
+		headers: {
+			"Content-Type": "text/calendar; charset=utf-8",
+			"Content-Disposition": "attachment; filename=stinkysocks.ics",
+		},
+	});
 }
