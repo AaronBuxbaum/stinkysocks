@@ -1,5 +1,5 @@
 import ics from "ics";
-import type { Game } from "./data";
+import type { Game } from "./data.js";
 
 export default async function sendICS(games: Game[]) {
 	const events = games.map((game) => game.event);
